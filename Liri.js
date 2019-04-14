@@ -8,87 +8,150 @@ var request = require('request');
 // require modules
 var argument = process.argv;
 var action = process.argv[2];
+var input = ''
 
 
-// 
-if(argument === "spotify-this-song"){
-    getSpotifySongs();
-} else if(argument === "concert-this"){
-    getBandsintown();
-} else if (argument === "movie-this"){
-    getMovies();
-}else if (argument === "do-what-it-says"){
-    getTxt();
-}
+// else if(argument === "concert-this"){
+//   getBandsintown();
+// } 
+// else if (argument === "do-what-it-says"){
+//     getTxt();
+// }
 
 // 
 function getInput(){
   var input = '';
   for(var i =3 ; i< argument.length; i++){
     if(i> 2 && i < argument.length){
-      input = input + '' + argument[i];
+      input = argument[i] + ' ';
     } 
     return input;
   }
 }
 
 
-// function expression
-
-getSpotifySongs = function(songName){
-
-    // here
-var sKeys = keys.spotify;
-
-
-
-
-var spotify= new Spotify(sKeys)
-spotify.search({ type: 'track', query: songName}, function(err, data) {
-    if (err) {
-      return console.log('Error occurred: ' + err);
-    }
-   
-var songInfo =    '\n' +
-'Artist Name: ' +
-data.tracks.items[0].artists[0].name +
-'\n' +
-'Song Name: ' +
-data.tracks.items[0].name +
-'\n' +
-'Spotify URL: ' +
-data.tracks.items[0].external_urls.spotify +
-'\n' +
-'Album Name: ' +
-data.tracks.items[0].album.name +
-'\n';
-
-console.log(songInfo);
-  });
-
+// function expression// 
+var getMovies = function(){
+  var inputMovies = getInput();
+if (!inputMovies){
+  inputMovies = "Mr.Nobody"
 }
 
-getSpotifySongs(getInput());
+  var queryURL = "http://www.omdbapi.com/?apikey=" + process.env.OMDB + "&t=" + inputMovies;
+ request(queryURL, function(error, response, body){
+   if(!error && response.statusCode === 200){
 
-// request('http://www.google.com', function (error, response, body) {
-//   console.log('error:', error); // Print the error if one occurred
-//   console.log('statusCode:', response && response.statusCode); // Print the response status code if a response was received
-//   console.log('body:', body); // Print the HTML for the Google homepage.
-// });
+    //Through this logic we catch the value for the rottenTomatoes property (that is comming from the body)
+    // I started by declaring an empty string in case that there is not value
+     var rottenTomatoes = '';
+     // Second, I run a array.find method over the ratings property, 
+     // so if there is a rotten tomatoes property inside of ratings I want to storage it inside of rottenTomatoesData and Parse it.
+     var rottenTomatoesData = JSON.parse(body).Ratings.find(function(rating){
+       rating.Source === 'Rotten Tomatoes'
+     })
 
-// var pick = function(caseData, functionData){
-//     switch(caseData){
-//         case "spotify-this-song":
-//         getSpotifySongs(functionData)
-//         break;
-//         default:
-//         console.log("liri.exe has failed you")
-//     }
-// }
+     //If my rottenTomatoesData has a value inside I want to stablish the value of my rottenTomatoes from line 85 as that value.
+    if(rottenTomatoesData){
+      rottenTomatoes +=  'Rotten Tomatoes: ' + rottenTomatoesData.Value + '\n'
+    }
 
-// function({ 
-//     type: 'artist OR album OR track', 
-//     query: 'My search query', 
-//     limit: 20 
-// }, callback);
+    
+    var movieInfo = '\n' +
+    'Title: ' +
+    JSON.parse(body).Title +
+    '\n' +
+    'Release Year: ' +
+    JSON.parse(body).Year +
+    '\n' +
+    'IMDB Rating: ' +
+    JSON.parse(body).imdbRating +
+    '\n' +
+    rottenTomatoes +
+    'Country: ' +
+    JSON.parse(body).Country +
+    '\n' +
+    'Language: ' +
+    JSON.parse(body).Language +
+    '\n' +
+    'Plot: ' +
+    JSON.parse(body).Plot +
+    '\n' +
+    'Actors: ' +
+    JSON.parse(body).Actors +
+    '\n';
 
+    console.log(movieInfo)
+
+   }
+ })
+}
+
+
+
+var getSpotifySongs = function(songName){
+  var songName = getInput();
+  var sKeys = keys.spotify;
+  var spotify= new Spotify(sKeys)
+  spotify.search({ type: 'track', query: songName}, function(err, data) {
+      if (err) {
+        return console.log('Error occurred: ' + err);
+      }
+     
+  var songInfo =    '\n' +
+  'Artist Name: ' +
+  data.tracks.items[0].artists[0].name +
+  '\n' +
+  'Song Name: ' +
+  data.tracks.items[0].name +
+  '\n' +
+  'Spotify URL: ' +
+  data.tracks.items[0].external_urls.spotify +
+  '\n' +
+  'Album Name: ' +
+  data.tracks.items[0].album.name +
+  '\n';
+  
+  console.log(songInfo);
+    });
+  }
+//----------------------
+//print random.txt Function
+//----------------------
+var getTxt = function () {
+  //This function is complement other functions.
+  fs.readFile('random.txt', 'utf8', function(err, data) {
+    if (err) {
+      return console.log(err);
+    }
+    
+
+
+    var input = "";
+    var output = data.split(',');
+    // // if there is output my data is gonna be split in commas
+    // //In case that our random.txt have 2 parameters, we use them to run another function, in this case spotify.
+    songName = output[1];
+    console.log(output[0])
+    console.log(input)
+    // // input will become output
+    if (output[0] === 'spotify-this-song') {
+      getSpotifySongs(songName) 
+    } 
+    
+    //else if (output[0] === 'movie-this') {
+    //   getMovies(input);
+    // }
+    // } else if (output[0] === 'my-tweets') {
+    //   getconcert();
+    // }
+  });
+}
+// 
+if(action === "spotify-this-song"){
+  getSpotifySongs();
+  
+} else if (action === "movie-this"){
+  getMovies();
+} else if (action === 'do-what-it-says'){
+  getTxt();
+}
