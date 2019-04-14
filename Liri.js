@@ -9,7 +9,9 @@ var request = require('request');
 var argument = process.argv;
 var action = process.argv[2];
 var input = ''
-
+// https://www.npmjs.com/package/omdb
+// https://www.npmjs.com/package/bandsintown
+// https://www.npmjs.com/package/node-spotify-api
 
 // else if(argument === "concert-this"){
 //   getBandsintown();
@@ -88,8 +90,18 @@ if (!inputMovies){
 
 
 
-var getSpotifySongs = function(songName){
-  var songName = getInput();
+var getSpotifySongs = function(input){
+  var songName = '';
+  // this input is optional here
+  // use output instead of input
+  // then run normal function
+  // if not change to input
+  // 
+  if(!input){
+    songName = getInput();
+  } else{
+    songName = input
+  }
   var sKeys = keys.spotify;
   var spotify= new Spotify(sKeys)
   spotify.search({ type: 'track', query: songName}, function(err, data) {
@@ -130,12 +142,12 @@ var getTxt = function () {
     var output = data.split(',');
     // // if there is output my data is gonna be split in commas
     // //In case that our random.txt have 2 parameters, we use them to run another function, in this case spotify.
-    songName = output[1];
+    input = output[1];
     console.log(output[0])
     console.log(input)
     // // input will become output
     if (output[0] === 'spotify-this-song') {
-      getSpotifySongs(songName) 
+      getSpotifySongs(input) 
     } 
     
     //else if (output[0] === 'movie-this') {
@@ -149,7 +161,6 @@ var getTxt = function () {
 // 
 if(action === "spotify-this-song"){
   getSpotifySongs();
-  
 } else if (action === "movie-this"){
   getMovies();
 } else if (action === 'do-what-it-says'){
